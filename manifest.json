@@ -1,7 +1,20 @@
 {
     "function_name": "Rust Function Template",
     "description": "A template for creating Rust functions",
-    "financial_data_keys": [],
-    "call_arguments_schema": {},
+    "financial_data_keys": ["symbol_data"],
+    "call_arguments_schema": {
+        "prd": {
+            "type": ["integer", "string"],
+            "description": "Pivot point period"
+        },
+        "factor": {
+            "type": ["number", "string"],
+            "description": "ATR factor"
+        },
+        "atr_prd": {
+            "type": ["integer", "string"],
+            "description": "ATR period"
+        }
+    },
     "enforce_schemas": false
 }
