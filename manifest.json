@@ -3,25 +3,30 @@
     "description": "A template for creating Rust functions",
     "financial_data_keys": ["symbol_data"],
     "call_arguments_schema": {
-        "prd": {
-            "type": ["integer", "string"],
-            "description": "Pivot Point Period",
-            "default": 2,
-            "minimum": 1,
-            "maximum": 50
+        "type": "object",
+        "properties": {
+            "prd": {
+                "type": ["integer", "string"],
+                "description": "Pivot Point Period",
+                "default": 2,
+                "minimum": 1,
+                "maximum": 50
+            },
+            "factor": {
+                "type": ["number", "string"],
+                "description": "ATR Factor",
+                "default": 3,
+                "minimum": 1
+            },
+            "atr_prd": {
+                "type": ["integer", "string"],
+                "description": "ATR Period",
+                "default": 10,
+                "minimum": 1
+            }
         },
-        "factor": {
-            "type": ["number", "string"],
-            "description": "ATR Factor",
-            "default": 3,
-            "minimum": 1
-        },
-        "atr_prd": {
-            "type": ["integer", "string"],
-            "description": "ATR Period",
-            "default": 10,
-            "minimum": 1
-        }
+        "required": ["prd", "factor", "atr_prd"],
+        "additionalProperties": false
     },
     "enforce_schemas": false
 }
