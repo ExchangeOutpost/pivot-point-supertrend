@@ -5,15 +5,22 @@
     "call_arguments_schema": {
         "prd": {
             "type": ["integer", "string"],
-            "description": "Pivot point period"
+            "description": "Pivot Point Period",
+            "default": 2,
+            "minimum": 1,
+            "maximum": 50
         },
         "factor": {
             "type": ["number", "string"],
-            "description": "ATR factor"
+            "description": "ATR Factor",
+            "default": 3,
+            "minimum": 1
         },
         "atr_prd": {
             "type": ["integer", "string"],
-            "description": "ATR period"
+            "description": "ATR Period",
+            "default": 10,
+            "minimum": 1
         }
     },
     "enforce_schemas": false
