@@ -205,7 +205,7 @@ struct SignalData {
 #[encoding(Json)]
 pub struct Output {
     // signals: Vec<SignalData>,
-    // final_trend: String,
+    final_trend: String,
 }
 
 #[plugin_fn]
@@ -311,5 +311,8 @@ pub fn run(fin_data: FinData) -> FnResult<Output> {
     //     .map(|s| format!("{:?}", s.trend))
     //     .unwrap_or_else(|| "Unknown".to_string());
 
-    Ok(Output {})
+    Ok(Output {
+        // signals,
+        final_trend: "Unknown".to_string(),
+    })
 }
