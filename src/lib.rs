@@ -313,6 +313,6 @@ pub fn run(fin_data: FinData) -> FnResult<Output> {
 
     Ok(Output {
         // signals,
-        final_trend: "Unknown".to_string(),
+        final_trend: fin_data.get_ticker("pegged_data")?.symbol.clone(),
     })
 }
