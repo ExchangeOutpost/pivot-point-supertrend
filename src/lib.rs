@@ -204,115 +204,112 @@ struct SignalData {
 #[derive(Serialize, ToBytes)]
 #[encoding(Json)]
 pub struct Output {
-    signals: Vec<SignalData>,
-    final_trend: String,
+    // signals: Vec<SignalData>,
+    // final_trend: String,
 }
 
 #[plugin_fn]
 pub fn run(fin_data: FinData) -> FnResult<Output> {
-    let ticker = fin_data.get_ticker("symbol_data")?;
-    let pivot_point_period: usize = fin_data.get_call_argument("prd")?;
-    let atr_factor: f64 = fin_data.get_call_argument("factor")?;
-    let atr_period: usize = fin_data.get_call_argument("atr_prd")?;
-    let candles: &Vec<exchange_outpost::Candle<f64>> = ticker.get_candles();
+    // let ticker = fin_data.get_ticker("symbol_data")?;
+    // let pivot_point_period: usize = fin_data.get_call_argument("prd")?;
+    // let atr_factor: f64 = fin_data.get_call_argument("factor")?;
+    // let atr_period: usize = fin_data.get_call_argument("atr_prd")?;
+    // let candles: &Vec<exchange_outpost::Candle<f64>> = ticker.get_candles();
 
-    let mut atr_calculator = AtrCalculator::new(atr_period);
-    let mut center_line = PivotCenterLine::new();
-    let mut supertrend_state: Option<SuperTrendState> = None;
-    let mut signals = Vec::new();
-    let mut last_pivot_high_idx: Option<usize> = None;
-    let mut last_pivot_low_idx: Option<usize> = None;
+    // let mut atr_calculator = AtrCalculator::new(atr_period);
+    // let mut center_line = PivotCenterLine::new();
+    // let mut supertrend_state: Option<SuperTrendState> = None;
+    // let mut signals = Vec::new();
+    // let mut last_pivot_high_idx: Option<usize> = None;
+    // let mut last_pivot_low_idx: Option<usize> = None;
 
-    // Collect price arrays for pivot detection
-    let mut highs = Vec::new();
-    let mut lows = Vec::new();
-    let mut closes = Vec::new();
-    let mut atrs = Vec::new();
+    // // Collect price arrays for pivot detection
+    // let mut highs = Vec::new();
+    // let mut lows = Vec::new();
+    // let mut closes = Vec::new();
+    // let mut atrs = Vec::new();
 
-    // First pass: calculate ATR for all bars using RMA (matching PineScript)
-    for (idx, candle) in candles.iter().enumerate() {
-        highs.push(candle.high);
-        lows.push(candle.low);
-        closes.push(candle.close);
+    // // First pass: calculate ATR for all bars using RMA (matching PineScript)
+    // for (idx, candle) in candles.iter().enumerate() {
+    //     highs.push(candle.high);
+    //     lows.push(candle.low);
+    //     closes.push(candle.close);
 
-        let prev_close = if idx > 0 {
-            candles[idx - 1].close
-        } else {
-            candle.close
-        };
+    //     let prev_close = if idx > 0 {
+    //         candles[idx - 1].close
+    //     } else {
+    //         candle.close
+    //     };
 
-        let atr_value = atr_calculator.next(candle.high, candle.low, prev_close);
-        atrs.push(atr_value);
-    }
+    //     let atr_value = atr_calculator.next(candle.high, candle.low, prev_close);
+    //     atrs.push(atr_value);
+    // }
 
-    // Second pass: detect pivots and calculate SuperTrend
-    for i in 0..candles.len() {
-        // Check for pivot high - only detect each pivot once
-        // pivothigh(prd, prd) in PineScript checks if bar at i-prd is a pivot
-        if i >= 2 * pivot_point_period {
-            let pivot_idx = i - pivot_point_period;
+    // // Second pass: detect pivots and calculate SuperTrend
+    // for i in 0..candles.len() {
+    //     // Check for pivot high - only detect each pivot once
+    //     // pivothigh(prd, prd) in PineScript checks if bar at i-prd is a pivot
+    //     if i >= 2 * pivot_point_period {
+    //         let pivot_idx = i - pivot_point_period;
 
-            if last_pivot_high_idx.map_or(true, |idx| pivot_idx > idx) {
-                if let Some(ph) = pivot_high(&highs[..=i], pivot_point_period, pivot_point_period) {
-                    center_line.update(ph);
-                    last_pivot_high_idx = Some(pivot_idx);
-                }
-            }
+    //         if last_pivot_high_idx.map_or(true, |idx| pivot_idx > idx) {
+    //             if let Some(ph) = pivot_high(&highs[..=i], pivot_point_period, pivot_point_period) {
+    //                 center_line.update(ph);
+    //                 last_pivot_high_idx = Some(pivot_idx);
+    //             }
+    //         }
 
-            if last_pivot_low_idx.map_or(true, |idx| pivot_idx > idx) {
-                if let Some(pl) = pivot_low(&lows[..=i], pivot_point_period, pivot_point_period) {
-                    center_line.update(pl);
-                    last_pivot_low_idx = Some(pivot_idx);
-                }
-            }
-        }
+    //         if last_pivot_low_idx.map_or(true, |idx| pivot_idx > idx) {
+    //             if let Some(pl) = pivot_low(&lows[..=i], pivot_point_period, pivot_point_period) {
+    //                 center_line.update(pl);
+    //                 last_pivot_low_idx = Some(pivot_idx);
+    //             }
+    //         }
+    //     }
 
-        // Calculate SuperTrend if we have a center line and ATR
-        if let Some(center) = center_line.get() {
-            let atr = atrs[i];
-            if atr > 0.0 {
-                let basic_upper = center + atr_factor * atr;
-                let basic_lower = center - atr_factor * atr;
+    //     // Calculate SuperTrend if we have a center line and ATR
+    //     if let Some(center) = center_line.get() {
+    //         let atr = atrs[i];
+    //         if atr > 0.0 {
+    //             let basic_upper = center + atr_factor * atr;
+    //             let basic_lower = center - atr_factor * atr;
 
-                match &mut supertrend_state {
-                    None => {
-                        // Initialize SuperTrend state (trend defaults to Up in PineScript)
-                        supertrend_state = Some(SuperTrendState::new(basic_upper, basic_lower));
-                    }
-                    Some(state) => {
-                        let old_trend = state.trend;
-                        let prev_close = if i > 0 { closes[i - 1] } else { closes[i] };
-                        state.update(basic_upper, basic_lower, closes[i], prev_close);
+    //             match &mut supertrend_state {
+    //                 None => {
+    //                     // Initialize SuperTrend state (trend defaults to Up in PineScript)
+    //                     supertrend_state = Some(SuperTrendState::new(basic_upper, basic_lower));
+    //                 }
+    //                 Some(state) => {
+    //                     let old_trend = state.trend;
+    //                     let prev_close = if i > 0 { closes[i - 1] } else { closes[i] };
+    //                     state.update(basic_upper, basic_lower, closes[i], prev_close);
 
-                        // Detect trend change (signal)
-                        if old_trend != state.trend {
-                            let signal_type = match state.trend {
-                                Trend::Up => "LONG",
-                                Trend::Down => "SHORT",
-                            };
+    //                     // Detect trend change (signal)
+    //                     if old_trend != state.trend {
+    //                         let signal_type = match state.trend {
+    //                             Trend::Up => "LONG",
+    //                             Trend::Down => "SHORT",
+    //                         };
 
-                            signals.push(SignalData {
-                                index: i,
-                                timestamp: candles[i].timestamp,
-                                price: closes[i],
-                                signal_type: signal_type.to_string(),
-                                trend: format!("{:?}", state.trend),
-                                signal_line: state.get_signal_line(),
-                            });
-                        }
-                    }
-                }
-            }
-        }
-    }
+    //                         signals.push(SignalData {
+    //                             index: i,
+    //                             timestamp: candles[i].timestamp,
+    //                             price: closes[i],
+    //                             signal_type: signal_type.to_string(),
+    //                             trend: format!("{:?}", state.trend),
+    //                             signal_line: state.get_signal_line(),
+    //                         });
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
 
-    let final_trend = supertrend_state
-        .as_ref()
-        .map(|s| format!("{:?}", s.trend))
-        .unwrap_or_else(|| "Unknown".to_string());
+    // let final_trend = supertrend_state
+    //     .as_ref()
+    //     .map(|s| format!("{:?}", s.trend))
+    //     .unwrap_or_else(|| "Unknown".to_string());
 
-    Ok(Output {
-        signals,
-        final_trend,
-    })
+    Ok(Output {})
 }
