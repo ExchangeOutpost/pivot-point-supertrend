@@ -1,6 +1,6 @@
 {
-    "function_name": "Rust Function Template",
-    "description": "A template for creating Rust functions",
+    "function_name": "Pivot Point Supertrend",
+    "description": "Calculates Pivot Point Supertrend signals based on financial data.",
     "financial_data_keys": ["symbol_data"],
     "call_arguments_schema": {
         "type": "object",
@@ -28,5 +28,5 @@
         "required": ["prd", "factor", "atr_prd"],
         "additionalProperties": false
     },
-    "enforce_schemas": false
+    "enforce_schemas": true
 }
