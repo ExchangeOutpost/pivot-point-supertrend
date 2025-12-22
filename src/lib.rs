@@ -1,6 +1,6 @@
 mod exchange_outpost;
 use crate::exchange_outpost::FinData;
-use extism_pdk::{FnResult, Json, ToBytes, encoding, plugin_fn};
+use extism_pdk::{FnResult, Json, ToBytes, encoding, info, plugin_fn};
 use serde::Serialize;
 
 /// Calculate True Range for a single bar
@@ -290,7 +290,7 @@ pub fn run(fin_data: FinData) -> FnResult<Output> {
                                 Trend::Up => "LONG",
                                 Trend::Down => "SHORT",
                             };
-
+                            info!("Signal detected at index {}: {}", i, signal_type);
                             signals.push(SignalData {
                                 index: i,
                                 timestamp: candles[i].timestamp,
@@ -310,6 +310,7 @@ pub fn run(fin_data: FinData) -> FnResult<Output> {
         .as_ref()
         .map(|s| format!("{:?}", s.trend))
         .unwrap_or_else(|| "Unknown".to_string());
+    info!("Final trend: {}", final_trend);
     Ok(Output {
         signals,
         final_trend: final_trend,
