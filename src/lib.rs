@@ -208,11 +208,11 @@ pub struct Output {
 }
 
 #[plugin_fn]
-pub fn run(fin_data: FunctionArgs) -> FnResult<Output> {
-    let ticker = fin_data.get_ticker("symbol_data")?;
-    let pivot_point_period: usize = fin_data.get_call_argument("prd")?;
-    let atr_factor: f64 = fin_data.get_call_argument("factor")?;
-    let atr_period: usize = fin_data.get_call_argument("atr_prd")?;
+pub fn run(call_args: FunctionArgs) -> FnResult<Output> {
+    let ticker = call_args.get_ticker("symbol_data")?;
+    let pivot_point_period: usize = call_args.get_call_argument("prd")?;
+    let atr_factor: f64 = call_args.get_call_argument("factor")?;
+    let atr_period: usize = call_args.get_call_argument("atr_prd")?;
     let candles: &Vec<Candle<f64>> = ticker.get_candles();
 
     let mut atr_calculator = AtrCalculator::new(atr_period);
