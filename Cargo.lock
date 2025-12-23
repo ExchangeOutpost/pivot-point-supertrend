@@ -145,7 +145,7 @@ checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 [[package]]
 name = "exchange_outpost_abi"
 version = "0.1.0"
-source = "git+https://github.com/ExchangeOutpost/exchange-outpost-abi?tag=0.0.1#74cf3ed5660cc3c14faad699e67fb5d6ec5e7d20"
+source = "git+https://github.com/ExchangeOutpost/exchange-outpost-abi?tag=0.1.1#c2ee4d81a9d46464aa0b46c82683f46271092924"
 dependencies = [
  "extism-pdk",
  "rust_decimal",
