@@ -1,5 +1,4 @@
-mod exchange_outpost;
-use crate::exchange_outpost::FinData;
+use exchange_outpost_abi::{Candle, FunctionArgs};
 use extism_pdk::{FnResult, Json, ToBytes, encoding, info, plugin_fn};
 use serde::Serialize;
 
@@ -209,12 +208,12 @@ pub struct Output {
 }
 
 #[plugin_fn]
-pub fn run(fin_data: FinData) -> FnResult<Output> {
+pub fn run(fin_data: FunctionArgs) -> FnResult<Output> {
     let ticker = fin_data.get_ticker("symbol_data")?;
     let pivot_point_period: usize = fin_data.get_call_argument("prd")?;
     let atr_factor: f64 = fin_data.get_call_argument("factor")?;
     let atr_period: usize = fin_data.get_call_argument("atr_prd")?;
-    let candles: &Vec<exchange_outpost::Candle<f64>> = ticker.get_candles();
+    let candles: &Vec<Candle<f64>> = ticker.get_candles();
 
     let mut atr_calculator = AtrCalculator::new(atr_period);
     let mut center_line = PivotCenterLine::new();
