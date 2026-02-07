@@ -1,5 +1,4 @@
-mod exchange_outpost;
-use crate::exchange_outpost::FinData;
+use exchange_outpost_abi::{Candle, FunctionArgs};
 use extism_pdk::{FnResult, Json, ToBytes, encoding, info, plugin_fn};
 use serde::Serialize;
 
@@ -209,25 +208,25 @@ pub struct Output {
 }
 
 #[plugin_fn]
-pub fn run(fin_data: FinData) -> FnResult<Output> {
-    let ticker = fin_data.get_ticker("symbol_data")?;
-    let pivot_point_period: usize = fin_data.get_call_argument("prd")?;
-    let atr_factor: f64 = fin_data.get_call_argument("factor")?;
-    let atr_period: usize = fin_data.get_call_argument("atr_prd")?;
-    let candles: &Vec<exchange_outpost::Candle<f64>> = ticker.get_candles();
+pub fn run(call_args: FunctionArgs) -> FnResult<Output> {
+    let ticker = call_args.get_ticker("symbol_data")?;
+    let pivot_point_period: usize = call_args.get_call_argument("prd")?;
+    let atr_factor: f64 = call_args.get_call_argument("factor")?;
+    let atr_period: usize = call_args.get_call_argument("atr_prd")?;
+    let candles: &Vec<Candle<f64>> = ticker.get_candles();
 
     let mut atr_calculator = AtrCalculator::new(atr_period);
     let mut center_line = PivotCenterLine::new();
     let mut supertrend_state: Option<SuperTrendState> = None;
-    let mut signals = Vec::new();
+    let mut signals = Vec::with_capacity(candles.len() / 20); // Estimate: At least ~5% of candles will be signals
     let mut last_pivot_high_idx: Option<usize> = None;
     let mut last_pivot_low_idx: Option<usize> = None;
 
     // Collect price arrays for pivot detection
-    let mut highs = Vec::new();
-    let mut lows = Vec::new();
-    let mut closes = Vec::new();
-    let mut atrs = Vec::new();
+    let mut highs = Vec::with_capacity(candles.len());
+    let mut lows = Vec::with_capacity(candles.len());
+    let mut closes = Vec::with_capacity(candles.len());
+    let mut atrs = Vec::with_capacity(candles.len());
 
     // First pass: calculate ATR for all bars using RMA (matching PineScript)
     for (idx, candle) in candles.iter().enumerate() {
