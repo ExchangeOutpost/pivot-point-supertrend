@@ -1,6 +1,7 @@
 use exchange_outpost_abi::{Candle, FunctionArgs};
 use extism_pdk::{FnResult, Json, ToBytes, encoding, info, plugin_fn};
-use serde::Serialize;
+use serde::{Serialize, Serializer};
+use std::fmt;
 
 /// Calculate True Range for a single bar
 fn true_range(high: f64, low: f64, prev_close: f64) -> f64 {
@@ -135,6 +136,47 @@ enum Trend {
     Down,
 }
 
+impl fmt::Display for Trend {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Trend::Up => write!(f, "UP"),
+            Trend::Down => write!(f, "DOWN"),
+        }
+    }
+}
+
+impl Serialize for Trend {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
+}
+
+enum SuperTrendSignal {
+    Long,
+    Short,
+}
+
+impl fmt::Display for SuperTrendSignal {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            SuperTrendSignal::Long => write!(f, "LONG"),
+            SuperTrendSignal::Short => write!(f, "SHORT"),
+        }
+    }
+}
+
+impl Serialize for SuperTrendSignal {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
+}
+
 struct SuperTrendState {
     trend: Trend,
     upper_band: f64,
@@ -195,8 +237,8 @@ struct SignalData {
     index: usize,
     timestamp: i64,
     price: f64,
-    signal_type: String,
-    trend: String,
+    signal_type: SuperTrendSignal,
+    trend: Trend,
     signal_line: f64,
 }
 
@@ -204,7 +246,7 @@ struct SignalData {
 #[encoding(Json)]
 pub struct Output {
     signals: Vec<SignalData>,
-    final_trend: String,
+    final_trend: Option<Trend>,
 }
 
 #[plugin_fn]
@@ -286,16 +328,16 @@ pub fn run(call_args: FunctionArgs) -> FnResult<Output> {
                         // Detect trend change (signal)
                         if old_trend != state.trend {
                             let signal_type = match state.trend {
-                                Trend::Up => "LONG",
-                                Trend::Down => "SHORT",
+                                Trend::Up => SuperTrendSignal::Long,
+                                Trend::Down => SuperTrendSignal::Short,
                             };
                             info!("Signal detected at index {}: {}", i, signal_type);
                             signals.push(SignalData {
                                 index: i,
                                 timestamp: candles[i].timestamp,
                                 price: closes[i],
-                                signal_type: signal_type.to_string(),
-                                trend: format!("{:?}", state.trend),
+                                signal_type: signal_type,
+                                trend: state.trend,
                                 signal_line: state.get_signal_line(),
                             });
                         }
@@ -305,11 +347,8 @@ pub fn run(call_args: FunctionArgs) -> FnResult<Output> {
         }
     }
 
-    let final_trend = supertrend_state
-        .as_ref()
-        .map(|s| format!("{:?}", s.trend))
-        .unwrap_or_else(|| "Unknown".to_string());
-    info!("Final trend: {}", final_trend);
+    let final_trend = supertrend_state.as_ref().map(|s| s.trend);
+    info!("Final trend: {:?}", final_trend);
     Ok(Output {
         signals,
         final_trend: final_trend,
