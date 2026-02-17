@@ -48,3 +48,37 @@ impl AtrCalculator {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_true_range() {
+        // Test basic true range calculation
+        let high = 110.0;
+        let low = 105.0;
+        let prev_close = 108.0;
+
+        let tr = true_range(high, low, prev_close);
+        assert_eq!(tr, 5.0); // max(110-105, |110-108|, |105-108|) = max(5, 2, 3) = 5
+    }
+
+    #[test]
+    fn test_atr_calculator() {
+        let mut atr = AtrCalculator::new(3);
+
+        // First bar
+        let result1 = atr.next(110.0, 105.0, 108.0);
+        assert!(result1 > 0.0);
+
+        // Second bar
+        let result2 = atr.next(112.0, 108.0, 110.0);
+        assert!(result2 > 0.0);
+
+        // Third bar - should have ATR initialized
+        let result3 = atr.next(115.0, 110.0, 112.0);
+        assert!(result3 > 0.0);
+        assert!(atr.atr.is_some());
+    }
+}

@@ -2,9 +2,10 @@ name: ci
 
 on:
   push:
+  pull_request:
 
 jobs:
-  fmt-check:
+  checks:
     runs-on: ubuntu-latest
 
     steps:

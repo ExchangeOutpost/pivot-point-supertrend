@@ -73,3 +73,39 @@ impl PivotCenterLine {
         self.center
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_pivot_high() {
+        // Test data: [100, 105, 110, 105, 100]
+        // Pivot should be at index 2 (110) with left=1, right=2
+        let highs = vec![100.0, 105.0, 110.0, 105.0, 100.0];
+        let result = pivot_high(&highs, 1, 2);
+        assert_eq!(result, Some(110.0));
+    }
+
+    #[test]
+    fn test_pivot_low() {
+        // Test data: [100, 95, 90, 95, 100]
+        // Pivot should be at index 2 (90) with left=1, right=2
+        let lows = vec![100.0, 95.0, 90.0, 95.0, 100.0];
+        let result = pivot_low(&lows, 1, 2);
+        assert_eq!(result, Some(90.0));
+    }
+
+    #[test]
+    fn test_pivot_center_line() {
+        let mut center = PivotCenterLine::new();
+        assert_eq!(center.get(), None);
+
+        center.update(100.0);
+        assert_eq!(center.get(), Some(100.0));
+
+        center.update(110.0);
+        let result = center.get().unwrap();
+        assert!((result - 103.33).abs() < 0.01); // (100*2 + 110)/3 ≈ 103.33
+    }
+}

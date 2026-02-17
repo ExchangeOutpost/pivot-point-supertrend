@@ -103,3 +103,44 @@ impl SuperTrendState {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_trend_display() {
+        assert_eq!(Trend::Up.to_string(), "UP");
+        assert_eq!(Trend::Down.to_string(), "DOWN");
+    }
+
+    #[test]
+    fn test_supertrend_state_initialization() {
+        let state = SuperTrendState::new(105.0, 95.0);
+        assert_eq!(state.trend, Trend::Up);
+        assert_eq!(state.upper_band, 105.0);
+        assert_eq!(state.lower_band, 95.0);
+    }
+
+    #[test]
+    fn test_supertrend_update() {
+        let mut state = SuperTrendState::new(105.0, 95.0);
+
+        // Update with new values
+        state.update(106.0, 96.0, 100.0, 98.0);
+
+        // Verify state has been updated
+        assert!(state.upper_band > 0.0);
+        assert!(state.lower_band > 0.0);
+    }
+
+    #[test]
+    fn test_get_signal_line() {
+        let state_up = SuperTrendState::new(105.0, 95.0);
+        assert_eq!(state_up.get_signal_line(), 95.0); // Trend::Up returns lower_band
+
+        let mut state_down = SuperTrendState::new(105.0, 95.0);
+        state_down.trend = Trend::Down;
+        assert_eq!(state_down.get_signal_line(), 105.0); // Trend::Down returns upper_band
+    }
+}
