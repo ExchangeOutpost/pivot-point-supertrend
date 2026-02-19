@@ -8,6 +8,7 @@ use exchange_outpost_abi::Candle;
 use extism_pdk::info;
 use serde::Serialize;
 
+#[derive(Debug, PartialEq)]
 pub enum ComputationState {
     Initialized,
     Completed,
@@ -183,5 +184,28 @@ impl PPST {
             }
         }
         self.computation_state = ComputationState::Completed;
+    }
+}
+
+// tests
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // test for PPST initialization
+    #[test]
+    fn test_ppst_initialization() {
+        let ppst = PPST::new(10, 3.0, 14, 100);
+        assert_eq!(ppst.pivot_point_period, 10);
+        assert_eq!(ppst.atr_factor, 3.0);
+        assert_eq!(ppst.atr_period, 14);
+        assert_eq!(ppst.computation_state, ComputationState::Initialized);
+        assert!(ppst.signals.is_empty());
+        assert!(ppst.highs.is_empty());
+        assert!(ppst.lows.is_empty());
+        assert!(ppst.closes.is_empty());
+        assert!(ppst.atrs.is_empty());
+        assert!(ppst.supertrend_state.is_none());
+        assert_eq!(ppst.lows.capacity(), 100);
     }
 }
